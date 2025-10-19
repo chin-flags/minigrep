@@ -1,3 +1,42 @@
+use std::error::Error;
+use std::{env, fs, process};
+
 fn main() {
-    println!("Hello, world!");
+    let args: Vec<String> = env::args().collect();
+
+    let config = Config::build(&args).unwrap_or_else(|err| {
+        println!("Problem parsing arguments: {err}");
+        process::exit(1);
+    });
+
+    if let Err(err) = run(&config) {
+        println!("Application Error , {err}");
+        process::exit(1);
+    }
+}
+
+struct Config {
+    query: String,
+    file_path: String,
+}
+
+impl Config {
+    fn build(args: &[String]) -> Result<Config, &'static str> {
+        if args.len() < 3 {
+            return Err("not enough arguments");
+        }
+
+        let query = args[1].clone();
+        let file_path = args[2].clone();
+
+        Ok(Config { query, file_path })
+    }
+}
+
+fn run(config: &Config) -> Result<(), Box<dyn Error>> {
+    let content = fs::read_to_string(&config.file_path)?;
+
+    println!("Found content:\n {content}");
+
+    Ok(())
 }
